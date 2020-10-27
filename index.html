@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCC Bar Chart Project</title>
+    <link rel="stylesheet" type="text/css" href="index.css" />
+    <link href="https://fonts.googleapis.com/css?family=Dosis&display=swap" rel="stylesheet">
+    <link />
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="#">some</a></li>
+            <li><a href="#">dead</a></li>
+            <li><a href="#">links</a></li>
+        </ul>
+    </nav>
+    <main class="mainContent">
+
+        <div id="title"><h1>United States GDP</h1></div>
+        <div><h3>1947 to 2015</h3></div>
+        
+    </main>
+
+    <footer></footer>
+    
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script>
+        const w = 800;
+        const h = 500;
+        const padding = 50;
+        const barWidth = (w-2*padding)/275;  //275 data points
+        const FCC_URL = 'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/GDP-data.json';
+        
+
+        async function getData(URL) {
+            try { 
+                const response = await fetch(URL);
+                const json = await response.json();
+                const dataset = json.data; //275 len arr, each element is 2 ele arr eg: dataset[0] = ["1947-01-01", 243.1]
+                
+                const xScale = d3.scaleTime()
+                        .domain([ new Date(dataset[0][0].slice(0,10)), new Date(dataset[dataset.length-1][0].slice(0,10)) ])  
+                        //.domain([d3.min(dataset, d => parseInt(d[0].slice(0,4))), //starts 01-01 so just using year for min
+                        //         d3.max(dataset, d => parseInt(d[0].slice(0,4)) + 1/12*parseInt(d[0].slice(5,7))) ]) 
+                        .range([padding, w - padding]); 
+
+                const yScale = d3.scaleLinear()
+                        .domain( [0, d3.max(dataset, d => d[1])] )
+                        .range( [h - padding, padding] );
+
+                const xAxis = d3.axisBottom(xScale);
+                const yAxis = d3.axisLeft(yScale);
+
+                const svg = d3.select('.mainContent')
+                    .append('svg')
+                    .attr('width', w)
+                    .attr('height', h);
+
+                svg.selectAll('rect')    
+                    .data(dataset)
+                    .enter()
+                    .append('rect')
+                    .attr('class', 'bar')
+                    .attr('width', barWidth)
+                    .attr('height', d => h -padding - yScale(d[1]))  
+                    .attr('y', d => yScale(d[1]))  //already inverted in range
+                    .attr('x', d => {  //RAAAAAAAAAAge
+                        //let dec = d[0].slice(5,7)/12;  //this works kinda but life is even better with d3.scaletime().  If you are reading this, Hi!
+                        //let xParam = parseInt(d[0].slice(0,4)) + dec;
+                        let dDate = new Date(d[0].slice(0,10));
+                        //return xScale(xParam);
+                        return xScale(dDate);
+                        
+                    })
+                    .attr('fill', 'rgb(90,90,210)')
+                    .attr('data-date', d => d[0])
+                    .attr('data-gdp', d => d[1])
+                    .append('title')
+                    .text(d=>`Date: ${d[0]}\nGDP: $${d[1]} billion`)
+                svg.append('g')
+                    .attr('transform', 'translate(0, ' + (h - padding) + ')')
+                    .attr('id', 'x-axis')
+                    .call(xAxis);
+                svg.append('g')
+                    .attr('transform', `translate(${padding},0)`)
+                    .attr('id', 'y-axis')
+                    .call(yAxis);     
+            }
+            catch(error){
+                console.log(error);
+            }
+        }
+
+        getData(FCC_URL);
+
+    </script>
+</body>
+</html>
