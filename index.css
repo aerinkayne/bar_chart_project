@@ -73,11 +73,11 @@ nav a, footer a {
 
 #title {
     margin: 2.5em auto 1em;
-    width: fit-content;
+    text-align: center;
 }
 h3 {
     margin: auto;
-    width: fit-content;
+    text-align: center;
 }
 svg {
     margin: 3em auto;
