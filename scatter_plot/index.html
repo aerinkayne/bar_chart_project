@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCC Scatterplot Graph Project</title>
+    <link rel="stylesheet" type="text/css" href="../index.css" />
+    <link href="https://fonts.googleapis.com/css?family=Dosis&display=swap" rel="stylesheet" />
+    
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="#">some</a></li>
+            <li><a href="#">dead</a></li>
+            <li><a href="#">links</a></li>
+        </ul>
+    </nav>
+
+    <main class="mainContent">
+
+        <h1 id="title">Doping in Professional Bicycle Racing</h1>
+        <h3>35 fastest Alpe d'Huez times</h3>
+    </main>
+
+    <footer></footer>
+    
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script>
+        const w = 800;
+        const h = 500;
+        const padding = 50;
+        const circWidth = "5px";
+        const FCC_URL = 'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/cyclist-data.json';
+        
+
+        async function getData(URL) {
+            try { 
+                const response = await fetch(URL);
+                let dataset = await response.json();
+                dataset = dataset.map( d =>{
+                    return {
+                        ...d, 
+                        timeParse: new Date(Date.UTC(1970, 0, 1, 0, d.Time.slice(0,2), d.Time.slice(3,5) )),
+                        color: d.Doping ? 'rgb(255,80,0)' : 'rgb(0,100,255)'
+                        }
+                })
+                //console.log(dataset);
+
+                const toolTip = d3.select('body')
+                    .append('div')
+                    .attr('id', 'tooltip')
+                    .style('opacity', 0);
+
+                const xScale = d3.scaleLinear() //by year
+                    .domain([d3.min(dataset, d => d.Year-1), d3.max(dataset, d => d.Year) ]) 
+                    .range([padding, w - padding]); 
+
+                const yScale = d3.scaleTime() //min:sec 00:00
+                    .domain([d3.min(dataset, d => d.timeParse), 
+                             d3.max(dataset, d => d.timeParse)] )
+                    .range( [h - padding, padding]);
+
+                const timeFormat = d3.timeFormat('%M:%S');
+                const xAxis = d3.axisBottom(xScale);
+                const yAxis = d3.axisLeft(yScale)
+                    .tickFormat(timeFormat);
+
+                const svg = d3.select('.mainContent')
+                    .append('svg')
+                    .attr('width', w)
+                    .attr('height', h);
+
+                svg.selectAll('.dot')    
+                    .data(dataset)
+                    .enter()
+                    .append('circle')
+                    .attr('class', 'dot')
+                    .attr('r', circWidth) 
+                    .attr('cy', d => {
+                        return Math.round(yScale(d.timeParse));
+                        })  
+                    .attr('cx', d => Math.round(xScale(d.Year)))
+                    .style('fill', d => d.color)    
+                    .attr('data-name', d => d.Name)
+                    .attr('data-xvalue', d => d.Year)
+                    .attr('data-yvalue', d => d.timeParse)
+
+                    .on('mouseover', (event, d) => {
+                        toolTip.style('opacity', 0.8)
+                        toolTip.attr('data-year', d.Year);
+                        toolTip.html(
+                            `Name: ${d.Name}<br/>Year: ${d.Year}, Time: ${d.Time}<br/><br/>${d.Doping}`
+                        )
+                        toolTip.style('left', `${event.clientX}px`)
+                        toolTip.style('top', `${event.clientY}px`)
+                    })
+                    .on('mouseout', ()=> {
+                        toolTip.style('opacity', 0);
+                    });
+
+                //X Y axis
+                svg.append('g')
+                    .attr('transform', 'translate(0, ' + (h - padding) + ')')
+                    .attr('id', 'x-axis')
+                    .call(xAxis);
+                svg.append('g')
+                    .attr('transform', `translate(${padding},0)`)
+                    .attr('id', 'y-axis')
+                    .call(yAxis);  
+
+
+
+                const dataCategories = [
+                        {
+                            doping: 'No doping allegations', 
+                            color:'rgb(0,100,255)' 
+                        }, 
+                        {
+                            doping: 'Riders with doping allegations',
+                            color:'rgb(255,80,0)' 
+                        }
+                    ];
+                const legendContainer = svg.append('g').attr('id', 'legend'); 
+                const legend = legendContainer
+                        .selectAll('#legend')
+                        .data(dataCategories)
+                        .enter()
+                        .append('g')
+                        .attr('class', 'legend-label')
+                        .attr('transform', (d,i) => {
+                            return `translate(0, ${h/2 - i * 22})`
+                        });
+                    legend.append('rect')
+                        .attr('x', w - 20 - padding)
+                        .attr('width', 20)
+                        .attr('height', 20)
+                        .style('fill', d => d.color);
+                    legend.append('text')
+                        .attr('x', w- 24 - padding)
+                        .attr('y', 9)
+                        .attr('dy', '0.35em')
+                        .style('text-anchor', 'end')
+                        .text(d=> d.doping)
+
+            }
+            catch(error){
+                console.log(error);
+            }
+        }
+
+        getData(FCC_URL);
+
+    </script>
+</body>
+</html>

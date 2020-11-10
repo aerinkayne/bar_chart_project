@@ -7,10 +7,13 @@
     line-height: 1.2;
 }
 body {
+    display: relative;
     background-image: url('./img/bigstock-chart-background-203062333.png');
     background-attachment: fixed;
     background-size: cover;
     background-repeat: no-repeat;
+    min-width: 100%;
+    min-height: 100vh;
 }
 nav, footer {
     position: relative; /* moves these elements in front of the mainContent element */
@@ -87,7 +90,18 @@ svg {
 }
 
 
-.bar:hover {
+.bar:hover, .dot:hover {
     cursor: pointer;
     fill: rgb(0, 238, 255);
+}
+.dot {
+    stroke: #000;
+    opacity: 0.75;
+}
+div#tooltip {
+    position: absolute;
+    padding: 1em;
+    border-radius: 3px;
+    background-color: #000;
+    color: #eef;
 }
