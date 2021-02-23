@@ -7,7 +7,7 @@
     line-height: 1.2;
 }
 body {
-    display: relative;
+    position: relative;
     background-image: url('./img/bigstock-chart-background-203062333.png');
     background-attachment: fixed;
     background-size: cover;
@@ -16,14 +16,13 @@ body {
     min-height: 100vh;
 }
 nav, footer {
-    position: relative; /* moves these elements in front of the mainContent element */
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
     height: 100px;
     color: #ddf;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     text-transform: uppercase;
     background-color: rgba(0,0,20,0.4);
 }
@@ -65,8 +64,8 @@ nav a, footer a {
     min-height: 100vh;
     margin: -100px auto;
     border: 2px solid black;
-    border-bottom: 100px solid black;
-    border-top: 100px solid black;
+    border-bottom: 100px solid rgba(0,0,0,0.6);
+    border-top: 100px solid rgba(0,0,0,0.4);
     background-clip: padding-box;
     background-color: #c8c8d0;
     width: 80%;

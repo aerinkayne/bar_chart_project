@@ -92,8 +92,8 @@
                         toolTip.html(
                             `Name: ${d.Name}<br/>Year: ${d.Year}, Time: ${d.Time}<br/><br/>${d.Doping}`
                         )
-                        toolTip.style('left', `${event.clientX}px`)
-                        toolTip.style('top', `${event.clientY}px`)
+                        toolTip.style('left', `${event.pageX}px`) //clientX, clientY
+                        toolTip.style('top', `${event.pageY}px`)
                     })
                     .on('mouseout', ()=> {
                         toolTip.style('opacity', 0);
