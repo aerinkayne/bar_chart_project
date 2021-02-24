@@ -21,8 +21,8 @@
 
     <main class="mainContent">
 
-        <h1 id="title">Doping in Professional Bicycle Racing</h1>
-        <h3>35 fastest Alpe d'Huez times</h3>
+        <h1 id="title">Monthly Global Land-Surface Temperature</h1>
+        <p id="description">Monthly temperature variance from Jan 1753 to Sept 2015</p>
     </main>
 
     <footer></footer>
@@ -32,24 +32,57 @@
     <script>
         const w = 800;
         const h = 500;
-        const padding = 50;
-        const FCC_URL = '#';
+        const padding = 25;
+        const FCC_URL = 'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/global-temperature.json'
+        
+        
 
         async function getData(URL) {
             try { 
                 const response = await fetch(URL);
-                let dataset = await response.json();
-                dataset = dataset.map( d => {
-                    //let's see what this is first
-                    console.log(dataset);
-            });
-            //do All The D3 Things
+                let data = await response.json();
+                const {baseTemperature, monthlyVariance} = data
+                //base temp (number), and array[3153] of objects eg {year: 1753, month: 1, variance: -1.366}
+                //year domain 1753 - 2015, months 1-12
+                const minYear = d3.min(monthlyVariance, d => d.year);
+                const maxYear = d3.max(monthlyVariance, d => d.year);
+                const maxVariance = d3.max(monthlyVariance, d => d.variance);
+                console.log(maxVariance)
+                const years = maxYear - minYear;
+                const rectW = (w - 2*padding)/years;
+                const rectH = (h - 2*padding)/12;
+
+                const xScale = d3.scaleLinear()
+                    .domain([minYear, maxYear])
+                    .range([padding, w - padding]);
+                const yScale = d3.scaleLinear()
+                    .domain([1,12])
+                    .range([h - padding, padding]);
+            
+                const svg = d3.select('.mainContent')
+                    .append('svg')
+                    .attr('width', w)
+                    .attr('height', h);
+                svg.selectAll("rect")
+                    .data(monthlyVariance)  
+                    .enter()
+                    .append("rect")
+                    .attr("class", "cell")
+                    .attr("data-month", d => d.month)
+                    .attr("data-year", d => d.year)
+                    .attr("data-temp", d => d.variance)
+                    .attr("width", Math.round(rectW))
+                    .attr("height", Math.round(rectH))
+                    .attr("x", d => Math.round(padding + rectW*(d.year-minYear) - rectW))
+                    .attr("y", d => Math.round(padding + rectH*(d.month-1)))
+                    .style("fill", d => `rgb(${255/maxVariance*d.variance},${-160/maxVariance*d.variance},${-255/maxVariance*d.variance}`)  
         }
         catch(error){
                 console.log(error);
             }
         }
         
+    getData(FCC_URL);    
     </script>
 </body>
 
