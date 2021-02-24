@@ -22,7 +22,7 @@
     <main class="mainContent">
 
         <h1 id="title">Monthly Global Land-Surface Temperature</h1>
-        <h4 id="description">Monthly temperature variance from Jan 1753 to Sept 2015</h4>
+        <h4 id="description">Monthly temperature variance from base temp of 8.66°C, Jan 1753 to Sept 2015</h4>
     </main>
 
     <footer></footer>
@@ -43,7 +43,8 @@
                 const response = await fetch(URL);
                 let data = await response.json();
                 const {baseTemperature, monthlyVariance} = data;
-                //base temp (number), and array[3153] of objects eg {year: 1753, month: 1, variance: -1.366}
+                
+                //base temp (number, 8.66), and array[3153] of objects eg {year: 1753, month: 1, variance: -1.366}
                 //year domain 1753 - 2015, months 1-12
 
                 const minYear = d3.min(monthlyVariance, d => d.year);
@@ -51,9 +52,25 @@
                 const months =['January', 'February', 'March', 'April', 
                                 'May', 'June', 'July', 'August', 
                                 'September', 'October', 'November', 'December']
+
                 const minVariance = d3.min(monthlyVariance, d => d.variance);
                 const maxVariance = d3.max(monthlyVariance, d => d.variance);
-                
+                const spread = maxVariance - minVariance;
+
+                const variants = [minVariance, 
+                            minVariance + spread/9,  
+                            minVariance + 2*spread/9,
+                            minVariance + 3*spread/9,
+                            minVariance + 4*spread/9,
+                            minVariance + 5*spread/9,
+                            minVariance + 6*spread/9,
+                            minVariance + 7*spread/9,
+                            minVariance + 8*spread/9,
+                            maxVariance];
+                            
+                const colors = variants.map(v => `rgb(${Math.round(240/maxVariance*v)},
+                                                      ${Math.round(-110/maxVariance*v)},
+                                                      ${Math.round(240/minVariance*v)}`);
 
                 const years = maxYear - minYear;
                 const rectW = Math.ceil((w - 2*padX)/years);
@@ -66,16 +83,23 @@
                     .domain([1, 12])
                     .range([padY, h - padY - rectH]);
 
+                const legendScale = d3.scaleLinear()
+                    .domain([minVariance, maxVariance])
+                    .range([0, 270]);    
+
                 const xAxis = d3.axisBottom(xScale);
                 const yAxis = d3.axisLeft(yScale)
                     .tickValues([1,2,3,4,5,6,7,8,9,10,11,12])
                     .tickFormat((d, i) => months[i]);
-                    
+                const legendAxis = d3.axisBottom(legendScale)
+                    .tickValues(variants)
+                    .tickFormat( d => d.toFixed(1));    
             
                 const svg = d3.select('.mainContent')
                     .append('svg')
                     .attr('width', w)
                     .attr('height', h);
+
                 svg.selectAll("rect")
                     .data(monthlyVariance)  
                     .enter()
@@ -88,8 +112,11 @@
                     .attr("height", rectH)
                     .attr("x", d => Math.floor(xScale(d.year)))      
                     .attr("y", d => Math.floor(yScale(d.month)))     
-                    .style("fill", d => `rgb(${255/maxVariance*d.variance},${-130/maxVariance*d.variance},${-255/maxVariance*d.variance}`) 
+                    .style("fill", d => `rgb(${Math.round(240/maxVariance*d.variance)},
+                                             ${Math.round(-110/maxVariance*d.variance)},
+                                             ${Math.round(240/minVariance*d.variance)}`) 
                     .append("title")
+                    .attr("data-year", d => d.year)
                     .text(d => {
                         let monthName = months[d.month-1]
                         return `${d.year}, ${monthName}\n${(baseTemperature + d.variance).toFixed(2)}°C\n${(d.variance).toFixed(2)}°C`});
@@ -100,6 +127,27 @@
                     svg.append("g")
                     .attr("transform", `translate(${padX}, ${rectH/2})`)
                     .call(yAxis)
+
+                    const svgLegend = d3.select('.mainContent')
+                    .append('svg')
+                    .attr('width', 300)
+                    .attr('height', 50)
+                    .attr('id', 'legend');
+
+                    svgLegend.selectAll('rect')
+                    .data(colors)
+                    .enter()
+                    .append("rect")
+                    .attr("width", 300/variants.length)
+                    .attr("height", 20)
+                    .attr("x", (d, i) => i * 300/variants.length)
+                    .attr("y", 0)
+                    .attr("fill", d => d);
+
+                    svgLegend.append("g")
+                    .attr("transform", `translate(15, ${20})`)
+                    .call(legendAxis);
+
                 }
             catch(error){
                 console.log(error);
