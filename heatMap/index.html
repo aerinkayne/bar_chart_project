@@ -116,15 +116,18 @@
                                              ${Math.round(-110/maxVariance*d.variance)},
                                              ${Math.round(240/minVariance*d.variance)}`) 
                     .append("title")
+                    .attr("id", "tooltip")
                     .attr("data-year", d => d.year)
                     .text(d => {
                         let monthName = months[d.month-1]
                         return `${d.year}, ${monthName}\n${(baseTemperature + d.variance).toFixed(2)}°C\n${(d.variance).toFixed(2)}°C`});
                     
                     svg.append("g")
+                    .attr("id", "x-axis")
                     .attr("transform", `translate(${rectW/2}, ${h - padY})`)
                     .call(xAxis);
                     svg.append("g")
+                    .attr("id", "y-axis")
                     .attr("transform", `translate(${padX}, ${rectH/2})`)
                     .call(yAxis)
 
