@@ -13,9 +13,7 @@
     
     <nav>
         <ul>
-            <li><a href="#">some</a></li>
-            <li><a href="#">dead</a></li>
-            <li><a href="#">links</a></li>
+
         </ul>
     </nav>
 
@@ -35,24 +33,19 @@
         const padX = 55;
         const padY = 24;
         const FCC_URL = 'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/global-temperature.json'
-        
-        
 
         async function getData(URL) {
             try { 
                 const response = await fetch(URL);
                 let data = await response.json();
                 const {baseTemperature, monthlyVariance} = data;
-                
                 //base temp (number, 8.66), and array[3153] of objects eg {year: 1753, month: 1, variance: -1.366}
-                //year domain 1753 - 2015, months 1-12
 
                 const minYear = d3.min(monthlyVariance, d => d.year);
                 const maxYear = d3.max(monthlyVariance, d => d.year);
                 const months =['January', 'February', 'March', 'April', 
                                 'May', 'June', 'July', 'August', 
                                 'September', 'October', 'November', 'December']
-
                 const minVariance = d3.min(monthlyVariance, d => d.variance);
                 const maxVariance = d3.max(monthlyVariance, d => d.variance);
                 const spread = maxVariance - minVariance;
@@ -71,7 +64,6 @@
                 const colors = variants.map(v => `rgb(${Math.round(240/maxVariance*v)},
                                                       ${Math.round(-110/maxVariance*v)},
                                                       ${Math.round(240/minVariance*v)}`);
-
                 const years = maxYear - minYear;
                 const rectW = Math.ceil((w - 2*padX)/years);
                 const rectH = Math.ceil((h - 2*padY)/12);
@@ -82,7 +74,6 @@
                 const yScale = d3.scaleLinear()
                     .domain([1, 12])
                     .range([padY, h - padY - rectH]);
-
                 const legendScale = d3.scaleLinear()
                     .domain([minVariance, maxVariance])
                     .range([0, 270]);    
@@ -155,15 +146,9 @@
             catch(error){
                 console.log(error);
             }
-
-            
         }
-
-        
-
         
     getData(FCC_URL); 
-      
     </script>
 </body>
 
