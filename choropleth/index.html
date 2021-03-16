@@ -36,6 +36,27 @@
                 const maxPercent = d3.max(eduData, d => d.bachelorsOrHigher);
                 //const whoAreYou = eduData.filter(d => d.bachelorsOrHigher > 70); //VA tho
                 const deltaLightness = 100/maxPercent;
+                const legendPanels = 7;  //check rounding
+                const deltaLegendVal = maxPercent/legendPanels;
+                const legendWidth = w/3;
+                const legendHeight = 4;
+                const legendRectWidth = Math.round(legendWidth/legendPanels);
+
+                const baseHue = 240;
+                const setColor = percent => `hsl(${baseHue},50%,${(100 - deltaLightness*percent).toFixed(1)}%)`;
+
+                let legendValues = [];
+                for (let i = 0; i <= maxPercent; i += deltaLegendVal){
+                    legendValues.push({percent:Math.round(i), color:setColor(i)});
+                }
+                //console.log(legendValues)
+
+                const legendScale = d3.scaleLinear()
+                    .domain([0, maxPercent])
+                    .range([0, legendWidth ]);
+                const legendAxis = d3.axisBottom(legendScale)
+                    .tickValues(legendValues.map(val => val.percent))
+                
 
                 const scaleArea = (scaleFactor) => {
                     return d3.geoTransform({
@@ -45,10 +66,6 @@
                     });
                 }
                 const path = d3.geoPath().projection(scaleArea(0.5));
-
-                const setColor = (percent)=> {
-                    return `hsl(0,50%,${100 - deltaLightness*percent}%)`;
-                }
 
                 const svg = d3.select('.mainContent')
                     .append('svg')
@@ -69,7 +86,6 @@
                         })
                         .attr('fill', d => {  
                             let join = eduData.filter(obj => obj.fips === d.id);
-                            //return 'hsl(0,50%,50%)'
                             return join[0] ? setColor(join[0].bachelorsOrHigher) : 'hsl(0, 100%, 100%)';
                         })
                         .attr('d', path); 
@@ -79,6 +95,27 @@
                         .datum(topojson.mesh(topoData, topoData.objects.states, (a, b) => a !== b))
                         .attr('class', 'states')
                         .attr('d', path);*/
+
+                const legend = svg
+                    .append('g')
+                    .attr('class', 'key')
+                    .attr('id', 'legend')
+                    .attr('transform', `translate(${(w - legendWidth - legendRectWidth)/2},10)`);
+
+                    legend.selectAll('rect')
+                    .data(legendValues) 
+                    .enter()
+                    .append('rect')
+                    .attr('height', legendHeight)
+                    .attr('width', legendRectWidth) 
+                    .attr('x', (d,i) => i*legendRectWidth)  //
+                    .attr('fill', (d,i)=> legendValues[i].color)   //)
+                    
+                    
+                    legend.append('g')
+                    .attr('transform', `translate(${legendRectWidth/2},${legendHeight})`)
+                    .call(legendAxis);
+
             }
             catch(e){console.log(e)}
         }
