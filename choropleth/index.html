@@ -34,22 +34,21 @@
                 const topoData = await fetch(cntURL).then(d => d.json());
 
                 const maxPercent = d3.max(eduData, d => d.bachelorsOrHigher);
-                //const whoAreYou = eduData.filter(d => d.bachelorsOrHigher > 70); //VA tho
                 const deltaLightness = 100/maxPercent;
-                const legendPanels = 7;  //check rounding
+                const legendPanels = 4;  //additional panels other than 0
                 const deltaLegendVal = maxPercent/legendPanels;
                 const legendWidth = w/3;
-                const legendHeight = 4;
-                const legendRectWidth = Math.round(legendWidth/legendPanels);
+                const legendHeight = 5;
+                const legendRectWidth = legendWidth/legendPanels;
 
                 const baseHue = 240;
                 const setColor = percent => `hsl(${baseHue},50%,${(100 - deltaLightness*percent).toFixed(1)}%)`;
 
                 let legendValues = [];
-                for (let i = 0; i <= maxPercent; i += deltaLegendVal){
-                    legendValues.push({percent:Math.round(i), color:setColor(i)});
+                //the legend width does not include the last panel (the last panel starts at legendWidth)
+                for (let i = 0; i < maxPercent + deltaLegendVal; i += deltaLegendVal){
+                    legendValues.push({percent: i, color:setColor(i)});
                 }
-                //console.log(legendValues)
 
                 const legendScale = d3.scaleLinear()
                     .domain([0, maxPercent])
@@ -57,7 +56,6 @@
                 const legendAxis = d3.axisBottom(legendScale)
                     .tickValues(legendValues.map(val => val.percent))
                 
-
                 const scaleArea = (scaleFactor) => {
                     return d3.geoTransform({
                         point: function(x,y) {
@@ -86,21 +84,30 @@
                         })
                         .attr('fill', d => {  
                             let join = eduData.filter(obj => obj.fips === d.id);
-                            return join[0] ? setColor(join[0].bachelorsOrHigher) : 'hsl(0, 100%, 100%)';
+                            return join[0] ? setColor(join[0].bachelorsOrHigher) : 'hsl(0, 100%, 50%)';
                         })
-                        .attr('d', path); 
+                        .attr('d', path)
 
-                        /* svg
-                        .append('path')
-                        .datum(topojson.mesh(topoData, topoData.objects.states, (a, b) => a !== b))
-                        .attr('class', 'states')
-                        .attr('d', path);*/
+                        .append("title")
+                        .attr("id", "tooltip")
+                        .attr("data-education",  d => {
+                            let join = eduData.filter(obj => obj.fips === d.id);
+                            return join[0] ? join[0].bachelorsOrHigher : 'no data';
+                        })
+                        .attr("county", d => {
+                            let join = eduData.filter(obj => obj.fips === d.id);
+                            return join[0] ? join[0].area_name : 'no data';
+                        })
+                        .text(d => {
+                            let join = eduData.filter(obj => obj.fips === d.id);
+                            return join[0] ? `${join[0].area_name}, ${join[0].state}, ${join[0].bachelorsOrHigher}%` : 'no data';
+                        });
 
                 const legend = svg
                     .append('g')
                     .attr('class', 'key')
                     .attr('id', 'legend')
-                    .attr('transform', `translate(${(w - legendWidth - legendRectWidth)/2},10)`);
+                    .attr('transform', `translate(${(w - legendWidth - legendRectWidth)/2},6)`);
 
                     legend.selectAll('rect')
                     .data(legendValues) 
@@ -108,12 +115,11 @@
                     .append('rect')
                     .attr('height', legendHeight)
                     .attr('width', legendRectWidth) 
-                    .attr('x', (d,i) => i*legendRectWidth)  //
-                    .attr('fill', (d,i)=> legendValues[i].color)   //)
-                    
+                    .attr('x', (d,i) => Math.round(i*legendRectWidth))  
+                    .attr('fill', (d,i)=> legendValues[i].color)   
                     
                     legend.append('g')
-                    .attr('transform', `translate(${legendRectWidth/2},${legendHeight})`)
+                    .attr('transform', `translate(${legendRectWidth/2},${legendHeight})`) 
                     .call(legendAxis);
 
             }
