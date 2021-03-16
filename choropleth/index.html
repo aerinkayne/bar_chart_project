@@ -14,7 +14,7 @@
     <nav><ul></ul></nav>
     <main class="mainContent">
         <h1 id="title">United States Educational Attainment</h1>
-        <h4 id="description">Percentage of adults age 25 and older with a bachelor's degree or higher (2010-2014)</h4>
+        <h4 id="description">Percentage of adults age 25 and older with a bachelor's degree or higher, 2010-2014</h4>
     </main>
     <footer><ul></ul></footer>
 
@@ -23,19 +23,32 @@
     <script src="https://d3js.org/topojson.v1.min.js"></script>
     <!-- project code -->
     <script>
-        const w = 800;
-        const h = 500;
-        const padX = 20;
-        const padY = 20;
+        const w = 480;
+        const h = 305;
         const eduDataURL="https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json";
         const countyDataURL="https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json";
 
         async function getData(eduURL, cntURL){
             try {
                 const eduData = await fetch(eduURL).then(d => d.json());
-                const cntData = await fetch(cntURL).then(d => d.json());
+                const topoData = await fetch(cntURL).then(d => d.json());
 
-                let path = d3.geoPath();
+                const maxPercent = d3.max(eduData, d => d.bachelorsOrHigher);
+                //const whoAreYou = eduData.filter(d => d.bachelorsOrHigher > 70); //VA tho
+                const deltaLightness = 100/maxPercent;
+
+                const scaleArea = (scaleFactor) => {
+                    return d3.geoTransform({
+                        point: function(x,y) {
+                            this.stream.point(x*scaleFactor, y*scaleFactor);
+                        }
+                    });
+                }
+                const path = d3.geoPath().projection(scaleArea(0.5));
+
+                const setColor = (percent)=> {
+                    return `hsl(0,50%,${100 - deltaLightness*percent}%)`;
+                }
 
                 const svg = d3.select('.mainContent')
                     .append('svg')
@@ -45,21 +58,25 @@
                     svg.append('g')
                         .attr('class', 'counties')
                         .selectAll('path')
-                        .data(topojson.feature(cntData, cntData.objects.counties).features)
+                        .data(topojson.feature(topoData, topoData.objects.counties).features)
                         .enter()
                         .append('path')
                         .attr('class', 'county')
                         .attr('data-fips', (d => d.id))
                         .attr('data-education',  d => {
-                            let result = eduData.filter(obj => obj.fips === d.id);
-                            return result[0] ? result[0].bachelorsOrHigher : 'no data';
+                            let join = eduData.filter(obj => obj.fips === d.id);
+                            return join[0] ? join[0].bachelorsOrHigher : 'no data';
                         })
-                        .attr('d', path);
+                        .attr('fill', d => {  
+                            let join = eduData.filter(obj => obj.fips === d.id);
+                            //return 'hsl(0,50%,50%)'
+                            return join[0] ? setColor(join[0].bachelorsOrHigher) : 'hsl(0, 100%, 100%)';
+                        })
+                        .attr('d', path); 
 
-                        /*
-                        svg
+                        /* svg
                         .append('path')
-                        .datum(topojson.mesh(cntData, cntData.objects.states, (a, b) => a !== b))
+                        .datum(topojson.mesh(topoData, topoData.objects.states, (a, b) => a !== b))
                         .attr('class', 'states')
                         .attr('d', path);*/
             }
