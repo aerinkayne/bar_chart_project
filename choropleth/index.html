@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choropleth Map with D3</title>
+    <!-- styles and font -->
+    <link rel="stylesheet" type="text/css" href="../index.css" />
+    <link href="https://fonts.googleapis.com/css?family=Dosis&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+    <nav><ul></ul></nav>
+    <main class="mainContent">
+        <h1 id="title">United States Educational Attainment</h1>
+        <h4 id="description">Percentage of adults age 25 and older with a bachelor's degree or higher (2010-2014)</h4>
+    </main>
+    <footer><ul></ul></footer>
+
+    <!-- D3 lib and topojson -->
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
+    <!-- project code -->
+    <script>
+        const w = 800;
+        const h = 500;
+        const padX = 20;
+        const padY = 20;
+        const eduDataURL="https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json";
+        const countyDataURL="https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json";
+
+        async function getData(eduURL, cntURL){
+            try {
+                const eduData = await fetch(eduURL).then(d => d.json());
+                const cntData = await fetch(cntURL).then(d => d.json());
+
+                let path = d3.geoPath();
+
+                const svg = d3.select('.mainContent')
+                    .append('svg')
+                    .attr('width', w)
+                    .attr('height', h);
+
+                    svg.append('g')
+                        .attr('class', 'counties')
+                        .selectAll('path')
+                        .data(topojson.feature(cntData, cntData.objects.counties).features)
+                        .enter()
+                        .append('path')
+                        .attr('class', 'county')
+                        .attr('data-fips', (d => d.id))
+                        .attr('data-education',  d => {
+                            let result = eduData.filter(obj => obj.fips === d.id);
+                            return result[0] ? result[0].bachelorsOrHigher : 'no data';
+                        })
+                        .attr('d', path);
+
+                        /*
+                        svg
+                        .append('path')
+                        .datum(topojson.mesh(cntData, cntData.objects.states, (a, b) => a !== b))
+                        .attr('class', 'states')
+                        .attr('d', path);*/
+            }
+            catch(e){console.log(e)}
+        }
+
+        getData(eduDataURL, countyDataURL);
+    </script>
+</body>
+</html>
