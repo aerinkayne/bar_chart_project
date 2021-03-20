@@ -9,12 +9,66 @@
     <link href="https://fonts.googleapis.com/css?family=Dosis&display=swap" rel="stylesheet" />
 </head>
 <body>
-    <h1 id="title"></h1>
-    <h4 id="description"></h4>
+    <nav> </nav>
 
-    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <main class="mainContent">
+        <h1 id="title"></h1>
+        <h4 id="description"></h4>
+    </main>
+
+    <footer></footer>
+
+    <script src="https://d3js.org/d3.v4.min.js"></script> <!-- https://d3js.org/d3.v6.min.js  color functions not working with this verison -->
+    
     <script>
+        const getData = async (URL) => {
+            try { 
+                const data = await fetch(URL).then(response => response.json());
+                const {name, children} = data;
+                
+                const w = 700; //of graph
+                const h = 500;
+                const padX = 6;
+                const padY = 4;
+                const padInner = 2;
+                const color = d3.scaleOrdinal().range(d3.schemeCategory20);
+                
+                /* const deltaColor = 360/children.length; //custom color.  works ok but some blocks not very distinct.  using older d3.
+                const colors = {};
+                children.map((ele, i) => {
+                    let factor = (i%2 == 0) ? 1 : -1;
+                    let key = ele.name;
+                    let val = `hsl(${(i*deltaColor).toFixed(1)}, ${50 + factor*10}%, ${50 + factor*20}%)`;
+                    colors[key] = val;
+                });*/
+
+                const svg = d3.select('.mainContent')
+                    .append('svg')
+                    .attr('width', w + 2*padX)  //of svg
+                    .attr('height', h + 2*padY);
+
+                const root = d3.hierarchy(data).sum(d => d.value);
+                const treemap = d3.treemap().size([w,h]).paddingInner(padInner)(root);
+
+                svg.selectAll('rect')
+                    .data(root.leaves())
+                    .enter()
+                    .append('rect')
+                    .attr('x', d => d.x0 + padX - padInner/2)
+                    .attr('y', d => d.y0 + padY - padInner/2)
+                    .attr('width', d => d.x1 - d.x0)
+                    .attr('height', d => d.y1 - d.y0)
+                    .style('fill', d => color(d.data.category)); //colors[d.data.category]
+
+            }
+            catch(error){
+                console.log(error);
+            }
+        }
+
         const URL = "https://cdn.freecodecamp.org/testable-projects-fcc/data/tree_map/video-game-sales-data.json";
+        getData(URL);
+        
     </script>
 </body>
 </html>

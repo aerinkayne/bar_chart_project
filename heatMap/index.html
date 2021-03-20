@@ -38,6 +38,7 @@
             try { 
                 const response = await fetch(URL);
                 let data = await response.json();
+
                 const {baseTemperature, monthlyVariance} = data;
                 //base temp (number, 8.66), and array[3153] of objects eg {year: 1753, month: 1, variance: -1.366}
 
