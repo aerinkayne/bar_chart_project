@@ -26,26 +26,28 @@
                 const data = await fetch(URL).then(response => response.json());
                 const {name, children} = data;
                 
-                const w = 700; //of graph
+                const w = 800; //of graph
                 const h = 500;
-                const padX = 6;
+                const padX = 4;
                 const padY = 4;
                 const padInner = 2;
-                const color = d3.scaleOrdinal().range(d3.schemeCategory20);
+                //const color = d3.scaleOrdinal().range(d3.schemeCategory20);
                 
-                /* const deltaColor = 360/children.length; //custom color.  works ok but some blocks not very distinct.  using older d3.
+                const deltaHue = 25; 
                 const colors = {};
                 children.map((ele, i) => {
-                    let factor = (i%2 == 0) ? 1 : -1;
+                    let factor = (i%2 === 0) ? 1 : 0; //for alternating hue, lightness, sat
+                    let hue = (i%2 === 0) ? (i*deltaHue).toFixed(1) : (180 - deltaHue + i*deltaHue).toFixed(1);
                     let key = ele.name;
-                    let val = `hsl(${(i*deltaColor).toFixed(1)}, ${50 + factor*10}%, ${50 + factor*20}%)`;
+                    let val = `hsl(${hue}, ${35 + factor*55}%, ${50 + factor*35}%)`;
                     colors[key] = val;
-                });*/
+                });
 
                 const svg = d3.select('.mainContent')
                     .append('svg')
-                    .attr('width', w + 2*padX)  //of svg
-                    .attr('height', h + 2*padY);
+                    .attr('width', w + 2*padX)  //total svg size
+                    .attr('height', h + 2*padY)
+                    .style('background', 'black');
 
                 const root = d3.hierarchy(data).sum(d => d.value);
                 const treemap = d3.treemap().size([w,h]).paddingInner(padInner)(root);
@@ -58,7 +60,7 @@
                     .attr('y', d => d.y0 + padY - padInner/2)
                     .attr('width', d => d.x1 - d.x0)
                     .attr('height', d => d.y1 - d.y0)
-                    .style('fill', d => color(d.data.category)); //colors[d.data.category]
+                    .style('fill', d => colors[d.data.category]); //colors[d.data.category] color(d.data.category)
 
             }
             catch(error){
@@ -68,7 +70,7 @@
 
         const URL = "https://cdn.freecodecamp.org/testable-projects-fcc/data/tree_map/video-game-sales-data.json";
         getData(URL);
-        
+
     </script>
 </body>
 </html>
