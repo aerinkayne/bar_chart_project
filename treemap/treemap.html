@@ -12,13 +12,16 @@
     <nav> </nav>
 
     <main class="mainContent">
-        <h1 id="title"></h1>
-        <h4 id="description"></h4>
+        <h1 id="title">Video Game Sales by Platform</h1>
+        <h4 id="description">Top 100</h4>
     </main>
 
     <footer></footer>
 
-    <script src="https://d3js.org/d3.v4.min.js"></script> <!-- https://d3js.org/d3.v6.min.js  color functions not working with this verison -->
+    <script src="https://d3js.org/d3.v6.min.js"></script> 
+    <!-- https://d3js.org/d3.v6.min.js  color functions not working with this verison 
+         https://d3js.org/d3.v4.min.js
+    -->
     
     <script>
         const getData = async (URL) => {
@@ -26,8 +29,8 @@
                 const data = await fetch(URL).then(response => response.json());
                 const {name, children} = data;
                 
-                const w = 800; //of graph
-                const h = 500;
+                const w = 1150; //of graph
+                const h = 800;
                 const padX = 4;
                 const padY = 4;
                 const padInner = 2;
@@ -39,7 +42,7 @@
                     let factor = (i%2 === 0) ? 1 : 0; //for alternating hue, lightness, sat
                     let hue = (i%2 === 0) ? (i*deltaHue).toFixed(1) : (180 - deltaHue + i*deltaHue).toFixed(1);
                     let key = ele.name;
-                    let val = `hsl(${hue}, ${35 + factor*55}%, ${50 + factor*35}%)`;
+                    let val = `hsl(${hue}, ${40 + factor*60}%, ${45 + factor*35}%)`;
                     colors[key] = val;
                 });
 
@@ -49,18 +52,51 @@
                     .attr('height', h + 2*padY)
                     .style('background', 'black');
 
+                const tooltip = svg.append('div')
+                    .attr('id', 'tooltip')
+                    .style('opacity', 0);    
+
                 const root = d3.hierarchy(data).sum(d => d.value);
                 const treemap = d3.treemap().size([w,h]).paddingInner(padInner)(root);
 
-                svg.selectAll('rect')
+                //panel groups. Translate these, then position inside elements relative to these.
+                const panels = svg.selectAll('g')
                     .data(root.leaves())
                     .enter()
+                    .append('g')
+                    .attr('class', 'panel')
+                    .attr('transform', d => `translate(${d.x0 + padX - padInner/2},${d.y0 + padY - padInner/2})`);
+
+                //rects inside panels
+                panels
                     .append('rect')
-                    .attr('x', d => d.x0 + padX - padInner/2)
-                    .attr('y', d => d.y0 + padY - padInner/2)
                     .attr('width', d => d.x1 - d.x0)
                     .attr('height', d => d.y1 - d.y0)
-                    .style('fill', d => colors[d.data.category]); //colors[d.data.category] color(d.data.category)
+                    .style('fill', d => colors[d.data.category]) //i like mine tho. color(d.data.category)
+                    .attr('class', 'tile')
+                    .attr('data-name', d => d.data.name)
+                    .attr('data-category', d => d.data.category)
+                    .attr('data-value', d => d.data.value);
+
+                //text field inside panel group (no text yet here)    
+                panels
+                    .append('text')
+                    .selectAll('tspan')
+                    .data(d => d.data.name.split(' '))
+                    .enter()
+                    .append('tspan')
+                    .attr('x', 3)
+                    .attr('y', (d,i) => 13 + 15*i)
+                    .attr('class', 'panel-text')
+                    .style('font-size', '12px')
+                    .style('font-weight', 'bolder')
+                    .attr('fill', 'black')
+                    .text( d => d);
+
+
+                    
+                    //.attr('dy', (d,i) => 12*i)
+                      
 
             }
             catch(error){
