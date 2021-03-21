@@ -42,7 +42,7 @@
                     let factor = (i%2 === 0) ? 1 : 0; //for alternating hue, lightness, sat
                     let hue = (i%2 === 0) ? (i*deltaHue).toFixed(1) : (180 - deltaHue + i*deltaHue).toFixed(1);
                     let key = ele.name;
-                    let val = `hsl(${hue}, ${40 + factor*60}%, ${45 + factor*35}%)`;
+                    let val = `hsl(${hue}, ${40 + factor*50}%, ${45 + factor*35}%)`;
                     colors[key] = val;
                 });
 
@@ -52,9 +52,11 @@
                     .attr('height', h + 2*padY)
                     .style('background', 'black');
 
-                const tooltip = svg.append('div')
+                const content = d3.select('.mainContent')
+                const tooltip = content
+                    .append('div')
                     .attr('id', 'tooltip')
-                    .style('opacity', 0);    
+                    .style('opacity', 0);
 
                 const root = d3.hierarchy(data).sum(d => d.value);
                 const treemap = d3.treemap().size([w,h]).paddingInner(padInner)(root);
@@ -76,7 +78,21 @@
                     .attr('class', 'tile')
                     .attr('data-name', d => d.data.name)
                     .attr('data-category', d => d.data.category)
-                    .attr('data-value', d => d.data.value);
+                    .attr('data-value', d => d.data.value)           
+                    .on('mousemove', (event, d)=> {
+                        tooltip.style('opacity', 0.8)
+                        tooltip.html(
+                           `Name: ${d.data.name}<br/>
+                           Category: ${d.data.category}</br>
+                           Value: ${d.data.value}`
+                        )
+                        .attr('data-value', d.data.value)
+                        .style('left', `${event.pageX}px`)
+                        .style('top', `${event.pageY}px`)
+                    })
+                    .on('mouseout', ()=> {
+                        tooltip.style('opacity', 0);
+                    });
 
                 //text field inside panel group (no text yet here)    
                 panels
@@ -93,9 +109,6 @@
                     .attr('fill', 'black')
                     .text( d => d);
 
-
-                    
-                    //.attr('dy', (d,i) => 12*i)
                       
 
             }

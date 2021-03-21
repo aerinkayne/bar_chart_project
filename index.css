@@ -85,6 +85,7 @@ h3, h4 {
     text-align: center;
 }
 svg {
+    position: relative;
     display: block;
     margin: 3em auto;  
     border: 1px solid black;
@@ -101,9 +102,11 @@ svg {
     opacity: 0.75;
 }
 div#tooltip {
+    z-index: 1000;
     position: absolute;
-    padding: 1em;
+    padding: 0.5em 0.75em;
     border-radius: 3px;
     background-color: #000;
     color: #eef;
+    line-height: 1.6;
 }
