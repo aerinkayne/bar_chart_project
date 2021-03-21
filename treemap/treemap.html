@@ -27,18 +27,26 @@
         const getData = async (URL) => {
             try { 
                 const data = await fetch(URL).then(response => response.json());
-                const {name, children} = data;
+                const {name, children: platforms} = data;
                 
-                const w = 1150; //of graph
+                const w = 1150; //of graph, svg = graph + outer padding
                 const h = 800;
                 const padX = 4;
                 const padY = 4;
                 const padInner = 2;
+                const legendItemW = 18;
+                const legendItemH = 10;
+                const legendColWidth = 110;
+                const legendRowHeight = 24;
+                const legendMargin = 7;
+                const numCols = 4;
+
+                //this works with d3 v4
                 //const color = d3.scaleOrdinal().range(d3.schemeCategory20);
                 
                 const deltaHue = 25; 
                 const colors = {};
-                children.map((ele, i) => {
+                platforms.map((ele, i) => {
                     let factor = (i%2 === 0) ? 1 : 0; //for alternating hue, lightness, sat
                     let hue = (i%2 === 0) ? (i*deltaHue).toFixed(1) : (180 - deltaHue + i*deltaHue).toFixed(1);
                     let key = ele.name;
@@ -109,7 +117,33 @@
                     .attr('fill', 'black')
                     .text( d => d);
 
-                      
+                const legend = d3.select('.mainContent')
+                    .append('svg') 
+                    .attr('width', 400)
+                    .attr('height', 125)
+                    .style('background', 'white');
+                const legendItem = legend
+                    .append('g')
+                    .selectAll('g')
+                    .data(platforms)
+                    .enter()
+                    .append('g')
+                    .attr('transform', (d,i)=> (
+                        `translate(${legendMargin + Math.floor(i%numCols) * legendColWidth}, ${legendMargin + Math.floor(i/numCols) * legendRowHeight})`
+                    ));
+                legendItem
+                    .append('rect')
+                    .attr('width', legendItemW)
+                    .attr('height', legendItemH)
+                    .attr('fill', (d, i) => {
+                        //console.log(d)
+                        return colors[d.name];
+                    });
+                legendItem
+                    .append('text')
+                    .attr('x', legendItemW + 4)
+                    .attr('y', legendItemH + 1)
+                    .text(d => d.name);
 
             }
             catch(error){
