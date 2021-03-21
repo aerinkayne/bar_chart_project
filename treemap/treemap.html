@@ -121,6 +121,7 @@
                     .append('svg') 
                     .attr('width', 400)
                     .attr('height', 125)
+                    .attr('id', 'legend')
                     .style('background', 'white');
                 const legendItem = legend
                     .append('g')
@@ -135,10 +136,8 @@
                     .append('rect')
                     .attr('width', legendItemW)
                     .attr('height', legendItemH)
-                    .attr('fill', (d, i) => {
-                        //console.log(d)
-                        return colors[d.name];
-                    });
+                    .attr('class', 'legend-item')
+                    .attr('fill', d => colors[d.name]);
                 legendItem
                     .append('text')
                     .attr('x', legendItemW + 4)
